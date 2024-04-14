@@ -4,7 +4,8 @@ version = "0.1.0"
 description = ""
 authors = ["Nikita Wootten <me@nikita.computer>"]
 readme = "README.md"
-package-mode = false
+license = "GPL-3.0"
+packages = [{ include = "spbot" }]
 
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -14,6 +15,7 @@ pypdf = "^4.2.0"
 faiss-cpu = "^1.8.0"
 lxml = "^5.2.1"
 requests = "^2.31.0"
+platformdirs = "^4.2.0"
 
 
 [tool.poetry.group.dev.dependencies]
