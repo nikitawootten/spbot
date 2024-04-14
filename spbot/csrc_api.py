@@ -96,6 +96,14 @@ def enrich_publication_overview(
     page = html.fromstring(response.content)
 
     links = page.xpath("//a[@id='pub-local-download-link']/@href")
+
+    # Replace relative links with absolute links
+    # (os.path.dirname is a terrible kludge, but it works!)
+    links = [
+        (os.path.dirname(response.url) + link) if link.startswith("/") else link
+        for link in links
+    ]
+
     details["publication_links"] = links
     return details
 
@@ -152,7 +160,7 @@ class PublicationResolver:
 
         return details
 
-    def get_cached_publication_file(self, href: str) -> str:
+    def get_cached_publication_file(self, href: str) -> Optional[str]:
         """
         Manages downloading and caching of publication files.
 
@@ -169,12 +177,13 @@ class PublicationResolver:
             return index[href]
 
         response = self.session.get(href)
-
-        filename = response.url.replace("://", "_").replace("/", "_")
-        file_cache_path = os.path.join(CACHE_DIR, self.FILES_CACHE_DIR, filename)
-        os.makedirs(os.path.dirname(file_cache_path), exist_ok=True)
-        with open(file_cache_path, "wb") as f:
-            f.write(response.content)
+        file_cache_path = None
+        if response.status_code == 200:
+            filename = response.url.replace("://", "_").replace("/", "_")
+            file_cache_path = os.path.join(CACHE_DIR, self.FILES_CACHE_DIR, filename)
+            os.makedirs(os.path.dirname(file_cache_path), exist_ok=True)
+            with open(file_cache_path, "wb") as f:
+                f.write(response.content)
 
         index[href] = file_cache_path
         with open(index_cache_path, "w") as f:
